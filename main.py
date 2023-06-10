@@ -26,6 +26,27 @@ def move_file(file: Path, root_dir: Path, category: str):
 
     new_name = target_dir.joinpath(f"normalize({new_name.stem}){file.suffix}")
 
+    if new_name.exists():
+        new_name = new_name.with_name(
+            f"{new_name.stem}-{uuid.uuid4()}{new_name.suffix}")
+
+    return new_name
+
+
+def sort_folder(path: Path) -> None:
+    for item in path.glob("**/*"):
+        if item.is_file():
+            cat = get_categories(item)
+            move_file(item, path, cat)
+
+
+def delete_empty_folders(path: Path) -> None:
+    for item in path.iterdir():
+        if item.is_dir():
+            delete_empty_folders(item)
+            if not any(item.iterdir()):
+                item.rmdir()
+
 
 def main():
     try:
@@ -35,6 +56,12 @@ def main():
 
     if not path.exists():
         return f"The folder {path} doesn't exist !"
+
+    sort_folder(path)
+
+
+delete_empty_folders(path)
+# upack_archive(path)
 
 
 CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
@@ -94,19 +121,3 @@ def normalize(in_name):
         else:
             out_name += '_'
     return out_name
-
-
-def get_Folder(p):
-
-    file_list = []
-    for i in p.iterdir():
-        file_list.append(i.name)
-        print(i.name)
-        print(i.suffix)
-    return file_list
-
-
-file_list = get_Folder(p)
-
-for i in file_list:
-    print(normalize(i))
