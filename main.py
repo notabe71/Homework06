@@ -2,14 +2,39 @@ import shutil
 from pathlib import Path
 import sys
 
-if len(sys.argv) != 2:
-    print("You must point the Folder's name!")
-    sys.exit()
-else:
-    p = Path(sys.argv[1])
-    if not p.exists():
-        print("The folder "+sys.argv[1]+" doesn't exist !")
-        sys.exit()
+CATEGORIES = {"Audio": [".mp3", ".aiff", ".ogg", ".wav", ".amr"],
+              "Documents": [".doc", ".docx", ".txt", ".pdf", ".xlsx", ".pptx"],
+              "Images": [".jpeg", ".png", ".jpg", ".svg"],
+              "Video": [".avi", ".mp4", ".mov", ".mkv"],
+              "Archives": [".zip", ".gz", ".tar"],
+              "Other": []
+              }
+
+
+def get_categories(path: Path) -> str:
+    ext = path.suffix.lower()
+    for cat, exts in CATEGORIES.item():
+        if ext in exts:
+            return cat
+    return "Other"
+
+
+def move_file(file: Path, root_dir: Path, category: str):
+    target_dir = root_dir.joinpath(category)
+    if not target_dir.exist():
+        target_dir.mkdir
+
+    new_name = target_dir.joinpath(f"normalize({new_name.stem}){file.suffix}")
+
+
+def main():
+    try:
+        path = Path(sys.argv[1])
+    except IndexError:
+        return "You must point the Folder's name!"
+
+    if not path.exists():
+        return f"The folder {path} doesn't exist !"
 
 
 CYRILLIC_SYMBOLS = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
