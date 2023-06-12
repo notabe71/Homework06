@@ -3,13 +3,14 @@ from pathlib import Path
 import sys
 import uuid
 
-CATEGORIES = {"Audio": [".mp3", ".aiff", ".ogg", ".wav", ".amr"],
-              "Documents": [".doc", ".docx", ".txt", ".pdf", ".xlsx", ".pptx"],
-              "Images": [".jpeg", ".png", ".jpg", ".svg"],
-              "Video": [".avi", ".mp4", ".mov", ".mkv"],
-              "Archives": [".zip", ".gz",  ".tar"],
-              "Other": []
-              }
+CATEGORIES = {
+    "Audio": [".mp3", ".aiff", ".ogg", ".wav", ".amr"],
+    "Documents": [".doc", ".docx", ".txt", ".pdf", ".xlsx", ".pptx"],
+    "Images": [".jpeg", ".png", ".jpg", ".svg"],
+    "Video": [".avi", ".mp4", ".mov", ".mkv"],
+    "Archives": [".zip", ".gz", ".tar"],
+    "Other": [],
+}
 
 
 def get_categories(path: Path) -> str:
@@ -17,6 +18,7 @@ def get_categories(path: Path) -> str:
     for cat, exts in CATEGORIES.items():
         if ext in exts:
             return cat
+
     return "Other"
 
 
@@ -26,14 +28,12 @@ def move_file(file: Path, root_dir: Path, category: str) -> None:
         target_dir.mkdir()
     new_name = target_dir.joinpath(f"{normalize(file.stem)}{file.suffix}")
     if new_name.exists():
-        new_name = new_name.with_name(
-            f"{new_name.stem}-{uuid.uuid4()}{file.suffix}")
+        new_name = new_name.with_name(f"{new_name.stem}-{uuid.uuid4()}{file.suffix}")
     file.rename(new_name)
 
 
 def sort_folder(path: Path) -> None:
     for item in path.glob("**/*"):
-
         if item.is_file():
             if item.parent.name not in CATEGORIES.keys():
                 cat = get_categories(item)
@@ -52,15 +52,12 @@ def unpack_archive(path: Path) -> None:
     path_arh = path.joinpath("Archives")
 
     for item in path_arh.iterdir():
-
-        arch_folder = path_arh.joinpath(item.stem+'_'+item.suffix.lower()[1:])
-
-        print(arch_folder)
+        arch_folder = path_arh.joinpath(item.stem + "_" + item.suffix.lower()[1:])
 
         if not arch_folder.exists():
             arch_folder.mkdir()
 
-        unpacked_file = str(path_arh)+"\\"+item.name
+        unpacked_file = str(path_arh) + "\\" + item.name
 
         try:
             shutil.unpack_archive(unpacked_file, str(arch_folder))
@@ -120,10 +117,15 @@ def normalize(in_name):
         out_name = ""
 
     for i in in_name:
-        if i == '.' or (ord(i) >= 65 and ord(i) <= 90) or (ord(i) >= 97 and ord(i) <= 122) or (ord(i) >= 48 and ord(i) <= 57):
+        if (
+            i == "."
+            or (ord(i) >= 65 and ord(i) <= 90)
+            or (ord(i) >= 97 and ord(i) <= 122)
+            or (ord(i) >= 48 and ord(i) <= 57)
+        ):
             out_name += i
         else:
-            out_name += '_'
+            out_name += "_"
     return out_name
 
 
@@ -140,6 +142,32 @@ def main():
 
     unpack_archive(path)
     delete_empty_folders(path)
+
+    All_Files = {
+        "Audio": [],
+        "Documents": [],
+        "Images": [],
+        "Video": [],
+        "Archives": [],
+        "Other": [],
+    }
+
+    unknown_ext = set()
+    known_ext = set()
+    for item in path.iterdir():
+        for file in item.iterdir():
+            if file.is_file():
+                All_Files[item.name].append(file.name)
+            if item.name == "Other":
+                unknown_ext.add(file.suffix)
+            else:
+                known_ext.add(file.suffix)
+
+    for key, val in All_Files.items():
+        print(f'In folder "{key}" there are following files: {val}')
+
+    print(f"There are known extensions in folder : {known_ext}")
+    print(f"I don't know such extensions : {unknown_ext}")
 
     return "I've done everything I could"
 
